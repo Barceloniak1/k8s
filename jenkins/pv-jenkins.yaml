@@ -1,0 +1,18 @@
+# Create PersistentVolume
+# change the ip of NFS server
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jenkins-persistent-storage
+  labels:
+    app: jenkins
+    tier: frontend
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 192.168.1.203
+    # Exported path of your NFS server
+    path: "/media/nfs/jenkins/"

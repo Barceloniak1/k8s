@@ -1,0 +1,71 @@
+# create a service for jenkins.
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app: jenkins
+spec:
+  selector:
+    app: jenkins
+    tier: frontend
+  ports:
+    - port: 4488
+      targetPort: 8080
+      protocol: TCP
+      name: port4488
+    - port: 50000
+      targetPort: 50000
+      protocol: TCP
+      name: port50000
+  externalIPs:
+    - 192.168.1.201
+    - 192.168.1.202
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-deployment
+  namespace: jenkins
+  labels:
+    app: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: jenkins
+        tier: frontend
+    spec:
+      tolerations:
+      - key: node.kubernetes.io/not-ready
+        effect: NoExecute
+        tolerationSeconds: 10
+      - key: node.kubernetes.io/unreachable
+        effect: NoExecute
+        tolerationSeconds: 10
+      containers:
+      - image: jenkins/jenkins:lts
+        imagePullPolicy: Always
+        name: jenkins
+        # resources:
+        #   requests:
+        #     memory: "5Mi"
+        #     cpu: "250m"
+        #   limits:
+        #     memory: "8Mi"
+        #     cpu: "500m"
+        volumeMounts:
+        - name: jenkins-persistent-storage
+          mountPath: "/var/jenkins_home"
+      volumes:
+      - name: jenkins-persistent-storage
+        persistentVolumeClaim:
+          claimName: jenkins-persistent-storage
