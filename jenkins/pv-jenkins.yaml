@@ -11,7 +11,7 @@ spec:
   capacity:
     storage: 10Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   nfs:
     server: 192.168.1.203
     # Exported path of your NFS server
