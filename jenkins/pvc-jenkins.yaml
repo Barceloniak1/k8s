@@ -5,7 +5,11 @@ metadata:
   namespace: jenkins
   labels:
     app: jenkins
+#Kubernetes NFS-Client Provisioner Deployed - Automatated PVC Assigned    
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
 spec:
+  storageClassName: managed-nfs-storage
   accessModes:
     - ReadWriteOnce
   resources:
