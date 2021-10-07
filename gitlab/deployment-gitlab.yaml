@@ -1,0 +1,85 @@
+# create a service for gitlab
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  namespace: gitlab
+  labels:
+    app: gitlab
+spec:
+  selector:
+    app: gitlab
+    tier: frontend
+  ports:
+    - port: 8443
+      targetPort: 443
+      protocol: TCP
+      name: port443
+    - port: 5580
+      targetPort: 80
+      protocol: TCP
+      name: port80
+    - port: 9922
+      targetPort: 22
+      protocol: TCP
+      name: port22
+  externalIPs:
+    - 192.168.1.201
+    - 192.168.1.202
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-deployment
+  namespace: gitlab
+  labels:
+    app: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gitlab
+        tier: frontend
+    spec:
+      tolerations:
+      - key: node.kubernetes.io/not-ready
+        effect: NoExecute
+        tolerationSeconds: 10
+      - key: node.kubernetes.io/unreachable
+        effect: NoExecute
+        tolerationSeconds: 10
+      containers:
+      - image: gitlab/gitlab-ce:latest
+        imagePullPolicy: Always
+        name: gitlab
+        resources:
+          requests:
+            memory: "4G"     #"4G"
+            cpu: "1"    #"4"
+          limits:
+            memory: "6G"     #"8G"
+            cpu: "2"    #"6"
+        volumeMounts:
+        - name: gitlab-etc-persistent-storage
+          mountPath: "/etc/gitlab"
+        - name: gitlab-varlog-persistent-storage
+          mountPath: "/var/log/gitlab"
+        - name: gitlab-varopt-persistent-storage
+          mountPath: "/var/opt/gitlab"
+      volumes:
+      - name: gitlab-etc-persistent-storage
+        persistentVolumeClaim:
+          claimName: gitlab-etc-persistent-storage
+      - name: gitlab-varlog-persistent-storage
+        persistentVolumeClaim:
+          claimName: gitlab-varlog-persistent-storage
+      - name: gitlab-varopt-persistent-storage
+        persistentVolumeClaim:
+          claimName: gitlab-varopt-persistent-storage
