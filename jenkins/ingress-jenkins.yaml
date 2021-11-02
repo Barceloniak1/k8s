@@ -18,6 +18,9 @@ spec:
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: jenkins
-          servicePort: 4488
+          service:
+            name: jenkins
+            port: 
+               number: 4488
